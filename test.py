@@ -4,7 +4,7 @@ __unittest = True
 
 import subprocess
 import re
-import unittest2
+import unittest
 import xmlrunner
 from subprocess import CalledProcessError, Popen, PIPE
 
