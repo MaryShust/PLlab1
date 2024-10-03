@@ -216,27 +216,31 @@ parse_uint:
   mov  rdx, rcx
   ret
 
+
+; Принимает указатель на строку, пытается
+; прочитать из её начала знаковое число.
+; Если есть знак, пробелы между ним и числом не разрешены.
+; Возвращает в rax: число, rdx : его длину в символах (включая знак, если он был)
+; rdx = 0 если число прочитать не удалось
 parse_int:
- xor  rax, rax              
- xor  r9, r9                ; buffer
- mov  r9b, byte[rdi]
- cmp  r9, '-'               
- jz  .minus                 ; check if first symbol is '-'
- sub  rsp, 8                ; align stack
- call parse_uint
- add  rsp, 8
- ret
- .minus:
-  inc  rdi                  ; rdi should point to the new symbol 
-  sub  rsp, 8               ; align stack
-  call parse_uint
-  add  rsp, 8
-  neg  rax
-  test rdx, rdx             
-  jz  .end
-  inc  rdx                  ; add 1 to length if at least one digit come after '-'
- .end:
-  ret
+    xor rax, rax ; Обнуляем rax для хранения результата
+    push rbx
+    mov bl, byte[rdi]
+    cmp bl,'-'
+    je  .negative
+    jmp .positive
+    .negative:
+        inc rdi
+        call parse_uint
+        inc rdx
+        neg rax
+        jmp .end
+    .positive:
+        call parse_uint
+    .end:
+        pop rbx
+        ret
+
 
 ; Принимает указатель на строку, указатель на буфер и длину буфера
 ; Копирует строку в буфер
