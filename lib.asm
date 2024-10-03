@@ -111,19 +111,19 @@ print_int:
 
 
 string_equals:
- xor  rcx, rcx              ; counter
- .loop:
-  mov  al, byte[rdi + rcx]
-  cmp  al, byte[rsi + rcx]
-  jne  .not_equal               ; check if symbols are equal
-  inc  rcx
-  test al, al
-  jnz  .loop
-  mov  rax, 1
-  ret
- .not_equal:
-  xor  rax, rax
-  ret
+    xor  rcx, rcx              ; counter
+    .loop:
+        mov  al, byte[rdi + rcx]
+        cmp  al, byte[rsi + rcx]
+        jne  .not_equal               ; check if symbols are equal
+        inc  rcx
+        test al, al
+        jnz  .loop
+        mov  rax, 1
+        ret
+    .not_equal:
+        xor  rax, rax
+        ret
 
 
 
