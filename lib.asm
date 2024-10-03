@@ -110,24 +110,21 @@ print_int:
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
 
 
-
-
 string_equals:
-    xor  rcx, rcx                ; обнуляем счетчик
-   ; xor  rax, rax                ; предполагаем, что строки равны (rax = 0)    
-    .check_loop:
-        mov  al, byte [rdi + rcx]    ; загружаем байт из первой строки
-        mov  bl, byte [rsi + rcx]    ; загружаем байт из второй строки   
-        cmp  al, bl                  ; сравниваем байты
-        jne  .not_equal               ; если символы разные, переход к .not_equax
-        inc  rcx                      ; увеличиваем счетчик
-        test al, al                  ; проверка на конец строки
-        jnz  .check_loop                   ; если достигнут конец первой строки, строки равны   
-        mov  rax, 1                   ; строки равны, устанавливаем rax в 1
-        ret
-    .not_equal:
-        xor  rax, rax                 ; строки не равны, устанавливаем rax в 0
-        ret
+ xor  rcx, rcx              ; counter
+ .loop:
+  mov  al, byte[rdi + rcx]
+  cmp  al, byte[rsi + rcx]
+  jne  .false               ; check if symbols are equal
+  inc  rcx
+  test al, al
+  jnz  .loop
+  mov  rax, 1
+  ret
+ .false:
+  xor  rax, rax
+  ret
+
 
 
 ; Читает один символ из stdin и возвращает его. Возвращает 0 если достигнут конец потока
