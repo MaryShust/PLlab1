@@ -114,7 +114,9 @@ string_equals:
     xor  rcx, rcx              ; counter
     .loop:
         mov  al, byte[rdi + rcx]
-        cmp  al, byte[rsi + rcx]
+        ;cmp  al, byte[rsi + rcx]
+        mov  bl, byte [rsi + rcx]    ; загружаем байт из второй строки   
+        cmp  al, bl                  ; сравниваем байты
         jne  .not_equal               ; check if symbols are equal
         inc  rcx
         test al, al
@@ -124,7 +126,6 @@ string_equals:
     .not_equal:
         xor  rax, rax
         ret
-
 
 
 
