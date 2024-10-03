@@ -53,18 +53,13 @@ print_char:
     syscall                    ; Выполняем системный вызов для вывода символа
     pop rdi
     ret                        ; Возвращаемся из функции
-     
 
+; Переводит строку (выводит символ с кодом 0xA)
 print_newline:
- mov  rax, 1
- mov  rdx, 0xA
- push rdx
- mov  rdx, 1
- mov  rsi, rsp
- mov  rdi, 1
- syscall
- pop  rdx
- ret
+    mov rdi, 10           ; Код символа новой строки (0xA) в rdi
+    call print_char       ; Вызов функции print_char для вывода новой строки
+    ret                   ; Возврат из функции     
+
 
 
 print_uint:
