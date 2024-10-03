@@ -90,44 +90,54 @@ print_uint:
   ret
  
 
-print_int:
- test rdi, rdi
- jge  .print                ; check if number is positive or negative
- neg  rdi                   
- push rdi
- mov  rdi, '-'
- 
- call print_char
- pop  rdi
- .print:
-  sub  rsp, 8               ; align stack
-  call print_uint
-  add  rsp, 8
-  ret  
 
+
+; Выводит знаковое 8-байтовое число в десятичном формате 
+print_int:
+    ; Вход: RDI содержит знаковое 8-байтовое число
+    xor rax, rax          ; Обнуляем RAX для работы
+    ; Проверка на ноль
+    test rdi, rdi         ; Проверяем, является ли число 0
+    jz .print_zero        ; Если 0, сразу выводим '0'
+    ; Проверка на знак
+    cmp rdi, 0
+    jl .print_negative ; если rdi < 0, переход к метке .print_negative
+    ; Положительное число или ноль
+    jmp .print_positive
+    .print_negative:
+        ; Печать знака '-'
+        mov rdi, '-'
+        call print_char
+        neg rdi
+        ; Перемещаем положительное число в rsi
+        mov rsi, rdi 
+        jmp .print_positive
+    .print_positive:
+        mov rsi, rdi ; Передаем положительное число в rsi
+        call print_uint
+        ret
+    .print_zero:
+        ; Обработка вывода нуля
+        mov rdi, '0'
+        call print_char
+        ret
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
 string_equals:
-    ; Входные параметры: 
-    ; rdi - указатель на первую строку
-    ; rsi - указатель на вторую строку
-    xor rax, rax             ; Обнуляем rax (по умолчанию возвращаем 0)
-    .loop:
-        mov al, [rdi]            ; Получаем байт из первой строки
-        mov bl, [rsi]            ; Получаем байт из второй строки
-        ; Сравниваем байты
-        cmp al, bl               ; Сравниваем байты
-        jne .not_equal           ; Если не равны, переходим к возвращению 0
-        test al, al              ; Проверяем, является ли текущий байт нулевым
-        jz .equal                ; Если нулевой, обе строки равны
-        inc rdi                  ; Переходим к следующему символу первой строки
-        inc rsi                  ; Переходим к следующему символу второй строки
-        jmp .loop                ; Продолжаем сравнение
-    .equal:
-        mov rax, 1               ; Если строки равны, возвращаем 1
-        ret                      ; Возвращаемся из функции
-    .not_equal:
-        ret                      ; Возвращаемся из функции с rax = 0 (по умолчанию)
+ xor  rcx, rcx              ; counter
+ .loop:
+  mov  al, byte[rdi + rcx]
+  cmp  al, byte[rsi + rcx]
+  jne  .false               ; check if symbols are equal
+  inc  rcx
+  test al, al
+  jnz  .loop
+  mov  rax, 1
+  ret
+ .false:
+  xor  rax, rax
+  ret
+
 
 
 ; Читает один символ из stdin и возвращает его. Возвращает 0 если достигнут конец потока
