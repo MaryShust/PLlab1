@@ -94,33 +94,18 @@ print_uint:
 
 ; Выводит знаковое 8-байтовое число в десятичном формате 
 print_int:
-    ; Вход: RDI содержит знаковое 8-байтовое число
-    xor rax, rax          ; Обнуляем RAX для работы
-    ; Проверка на ноль
-    test rdi, rdi         ; Проверяем, является ли число 0
-    jz .print_zero        ; Если 0, сразу выводим '0'
-    ; Проверка на знак
-    cmp rdi, 0
-    jl .print_negative ; если rdi < 0, переход к метке .print_negative
-    ; Положительное число или ноль
-    jmp .print_positive
-    .print_negative:
-        ; Печать знака '-'
-        mov rdi, '-'
-        call print_char
-        neg rdi
-        ; Перемещаем положительное число в rsi
-        mov rsi, rdi 
-        jmp .print_positive
-    .print_positive:
-        mov rsi, rdi ; Передаем положительное число в rsi
-        call print_uint
-        ret
-    .print_zero:
-        ; Обработка вывода нуля
-        mov rdi, '0'
-        call print_char
-        ret
+ test rdi, rdi
+ jge  .print                ; check if number is positive or negative
+ neg  rdi                   
+ push rdi
+ mov  rdi, '-'
+ call print_char
+ pop  rdi
+ .print:
+  sub  rsp, 8               ; align stack
+  call print_uint
+  add  rsp, 8
+  ret  
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
 string_equals:
