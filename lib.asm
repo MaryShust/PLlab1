@@ -234,7 +234,7 @@ parse_uint:
 		    xor rcx,rcx
 		    mov cl, [rdx + rdi]
 		    cmp cl, '0'
-		    jc .stop
+		    jc .done
 		    cmp cl, '9'
 		    ja .done
 		    sub rcx, '0'
