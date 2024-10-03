@@ -19,15 +19,27 @@ string_length:
         mov rax, rcx            ; помещаем длину строки в rax
         ret                      ; возвращаемся
 
+; Принимает указатель на нуль-терминированную строку, выводит её в stdout
+; Вход: rdi - указатель на строку
 print_string:
- push rdi                   ; save rdi and align stack
- call  string_length
- pop  rsi
- mov  rdx, rax
- mov  rax, 1
- mov  rdi, 1
- syscall
- ret
+    ; Предполагаем, что указатель на строку передан в rdi
+    xor rax, rax              ; заношу 0 в rax (можно не обязательно, но для чистоты)
+    ; Проверяем, не нулевой ли указатель
+    test rdi, rdi
+    jz .done               ; Если указатель нулевой, просто выходим
+    mov rsi, rdi           ; Указатель на строку
+    ; Получаем длину строки
+    push rsi    
+    call string_length     ; В rax теперь длина строки
+    pop rsi
+    ; Параметры для системного вызова
+    mov rdx, rax           ; Длина строки    
+    mov rdi, 1             ; 1 - дескриптор stdout
+    mov rax, 1             ; Системный вызов sys_write (1)
+    syscall                ; Вызов системного вызова
+    ret
+    .done:
+        ret
 
 print_char:
  push rdi                   ; save char on stack
