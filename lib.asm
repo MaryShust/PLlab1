@@ -121,16 +121,29 @@ string_equals:
   xor  rax, rax
   ret
 
+; Читает один символ из stdin и возвращает его. Возвращает 0 если достигнут конец потока
 read_char:
- xor  rax, rax
- xor  rdi, rdi
- mov  rdx, 1
- push 0                     ; free space on stack
- mov  rsi, rsp              ; rsp points on top of the stack
- syscall                    ; after syscall symbol will be on top of the stack
- pop  rax
- ret
-
+    ; Подготовка для чтения символа из stdin
+    ; Используем системный вызов read (номер 0 по умолчанию) 
+    ; Создаем буфер для хранения символа
+    sub rsp, 1             ; Выделяем 1 байт на стеке
+    mov rax, 0             ; Код системного вызова для read
+    mov rdi, 0             ; Дескриптор файла 0 (stdin)
+    lea rsi, [rsp]         ; Адрес буфера - адрес на стеке
+    mov rdx, 1             ; Читаем 1 байт
+    syscall                 ; Вызываем системный вызов
+    ; Проверяем, сколько байт было прочитано
+    cmp rax, 1             ; Если прочитано 1 байт
+    je .char_read          ; Переходим к возвращению символа
+    ; Если rax не равен 1, значит, либо ошибка, либо eof
+    mov eax, 0             ; Возвращаем 0 (оконечный символ)
+    add rsp, 1             ; Восстанавливаем стек
+    ret                     ; Выходим из функции
+    .char_read:
+        ; Если символ успешно прочитан
+        movzx rax, byte [rsp]  ; Загружаем символ в rax (расширяем до 64 бит)
+        add rsp, 1             ; Восстанавливаем стек
+        ret                     ; Возвращаем символ
 
 read_word:
  push rdi                   ; save original value of rdi
