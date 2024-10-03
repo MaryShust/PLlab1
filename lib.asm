@@ -1,18 +1,23 @@
 section .text
 
+; Принимает код возврата и завершает текущий процесс
 exit:
- mov  rax, 60
- syscall
+    mov rax, 60
+    syscall
 
+; Принимает указатель на нуль-терминированную строку, возвращает её длину
 string_length:
- xor  rax, rax              ; rax works as couter
- .loop:
-  cmp  byte[rdi + rax], 0   ; check null terminator
-  je   .end
-  inc  rax
-  jmp  .loop
- .end:
-  ret
+    xor rax, rax ; обнуляем rax, чтобы начать с 0 (длина строки)
+    xor rcx, rcx ; обнуляем rcx (будет использоваться для обхода строки)
+    .loop:
+        mov al, byte [rdi + rcx] ; загружаем байт строки в al
+        cmp al, 0                ; проверяем, является ли это нулевым байтом
+        je .done                 ; если да, переходим к завершению
+        inc rcx                  ; увеличиваем счетчик
+        jmp .loop                ; повторяем цикл
+    .done:
+        mov rax, rcx            ; помещаем длину строки в rax
+        ret                      ; возвращаемся
 
 print_string:
  push rdi                   ; save rdi and align stack
