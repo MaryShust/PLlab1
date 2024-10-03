@@ -229,26 +229,24 @@ read_word:
 ; rdx = 0 если число прочитать не удалось
 parse_uint:
     xor rdx, rdx
-	xor rcx, rcx
-	.loop:
-		xor rcx,rcx
-		mov cl, [rdx + rdi]
-		cmp cl, '0'
-		jc .stop
-		cmp cl, '9'
-		ja .done
-		sub rcx, '0'
-		
-		mov r11,10
-		push rdx
-		mul r11
-		pop rdx
-		
-		add rax, rcx
-		inc rdx
-		jmp .loop
-	.done:
-		ret
+	  xor rcx, rcx
+	  .loop:
+		    xor rcx,rcx
+		    mov cl, [rdx + rdi]
+		    cmp cl, '0'
+		    jc .stop
+		    cmp cl, '9'
+		    ja .done
+		    sub rcx, '0'
+		    mov r11,10
+		    push rdx
+		    mul r11
+		    pop rdx
+		    add rax, rcx
+		    inc rdx
+		    jmp .loop
+    .done:
+		    ret
 
 ; Принимает указатель на строку, указатель на буфер и длину буфера
 ; Копирует строку в буфер
