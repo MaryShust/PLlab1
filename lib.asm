@@ -108,16 +108,13 @@ print_int:
   ret  
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
-
-
 string_equals:
-    xor  rcx, rcx              ; counter
+    xor rcx, rcx  
+    xor rax, rax
     .loop:
         mov  al, byte[rdi + rcx]
-        ;cmp  al, byte[rsi + rcx]
-        mov  bl, byte [rsi + rcx]    ; загружаем байт из второй строки   
-        cmp  al, bl                  ; сравниваем байты
-        jne  .not_equal               ; check if symbols are equal
+        cmp  al, byte[rsi + rcx]  ; сравниваем байты               
+        jne  .not_equal             
         inc  rcx
         test al, al
         jnz  .loop
@@ -126,9 +123,6 @@ string_equals:
     .not_equal:
         xor  rax, rax
         ret
-
-
-
 
 ; Читает один символ из stdin и возвращает его. Возвращает 0 если достигнут конец потока
 read_char:
