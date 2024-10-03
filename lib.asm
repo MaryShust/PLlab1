@@ -121,10 +121,8 @@ print_int:
     jmp .print_positive
     .print_negative:
         ; Печать знака '-'
-        mov rax, rdi
         mov rdi, '-'
         call print_char
-        mov rdi, rax
         neg rdi
         ; Перемещаем положительное число в rsi
         mov rsi, rdi 
