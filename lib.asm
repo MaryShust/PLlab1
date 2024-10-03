@@ -114,7 +114,7 @@ print_int:
 
 string_equals:
     xor  rcx, rcx                ; обнуляем счетчик
-    xor  rax, rax                ; предполагаем, что строки равны (rax = 0)    
+   ; xor  rax, rax                ; предполагаем, что строки равны (rax = 0)    
     .check_loop:
         mov  al, byte [rdi + rcx]    ; загружаем байт из первой строки
         mov  bl, byte [rsi + rcx]    ; загружаем байт из второй строки   
