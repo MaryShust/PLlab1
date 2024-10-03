@@ -238,18 +238,21 @@ parse_int:
  .end:
   ret
 
+; Принимает указатель на строку, указатель на буфер и длину буфера
+; Копирует строку в буфер
+; Возвращает длину строки если она умещается в буфер, иначе 0
 string_copy:
- xor  rcx, rcx              ; counter
- .loop:
-  cmp  rdx, rcx             ; check if counter is less than length of buffer
-  jle  .fail
-  mov  al, [rdi + rcx]
-  mov  [rsi + rcx], al
-  inc  rcx
-  test al, al               ; check null terminator
-  jnz  .loop
-  mov  rax, rcx
-  ret
- .fail:
-  xor  rax, rax
- ret
+    xor rax, rax
+    xor eax, eax              ; Обнуляем счетчик длины
+    .looper:                 ; [Итерация по строке]
+        mov byte cl, [rdi + rax]  ; Символ в rcx
+        mov byte [rsi + rax], cl  ; rcx в буфер
+        inc rax               ; Увеличиваем счетчик
+        cmp cl, 0               ; Если символ != null-terminator
+        jnz .looper              ; То продолжаем
+    cmp rax, rdx                  ; Сравниваем длину строки и буфера
+    jl .return                    ; Если меньше, то возврат
+    xor eax, eax                  ; Иначе обнуляем rax
+    .return:                      ; [Возврат]
+        ret   
+
