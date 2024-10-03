@@ -41,15 +41,19 @@ print_string:
     .done:
         ret
 
+; Принимает код символа и выводит его в stdout
 print_char:
- push rdi                   ; save char on stack
- mov  rsi, rsp              ; rsp points to the char
- mov  rdx, 1
- mov  rax, 1
- mov  rdi, 1
- syscall
- pop  rdi
- ret
+    ; Принимаем код символа в rdi
+    push rdi
+    mov rax, 1                 ; Номер системного вызова write
+    mov rdi, 1                 ; Файл дескриптор 1 (stdout)
+    ; Подготовка к записи символа
+    mov rsi, rsp               ; Указываем на стек для хранения символа
+    mov rdx, 1                 ; Количество байт для записи (один символ)
+    syscall                    ; Выполняем системный вызов для вывода символа
+    pop rdi
+    ret                        ; Возвращаемся из функции
+     
 
 print_newline:
  mov  rax, 1
