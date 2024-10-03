@@ -226,25 +226,27 @@ read_word:
 ; Принимает указатель на строку, пытается
 ; rdx = 0 если число прочитать не удалось
 parse_uint:
-    push rbx
-    xor rdx, rdx
-    xor rax, rax
-    xor rbx, rbx
-    .loop:
-        mov bl, byte [rdi + rdx]
-        sub bl, '0'
-        jl .return
-        cmp bl, 9
-        jg .return
-        push rdx
-        mov rdx, 10
-        mul rdx       ; rax *= 10
-        pop rdx
-        add rax, rbx  ; rax += rbx
-        inc rdx
-        jmp .loop
-    .return:
-        pop rbx
+    xor  rax, rax              
+    xor  rcx, rcx              ; counter
+    mov  rsi, 10               
+    xor  r9, r9                ; buffer
+    .loop: 
+        mov  r9b, byte[rdi + rcx] ; place symbol in buffer
+        cmp  r9, 48               ; check if ASCII code is less than code of '0'
+        jl  .end
+        cmp  r9, 57               ; check if ASCII code is bigger than code of '9'
+        jg  .end
+        mul  rsi
+        sub  r9, 48               ; convert from ASCII to digit
+        add  rax, r9
+        inc  rcx
+        cmp  rcx, 1
+        jnz  .loop
+        test rax, rax
+        jz  .end
+        jmp  .loop
+    .end:
+        mov  rdx, rcx
         ret
 
 ; Принимает указатель на строку, указатель на буфер и длину буфера
