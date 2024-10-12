@@ -148,6 +148,7 @@ read_char:
         add rsp, 1             ; Восстанавливаем стек
         ret                     ; Возвращаем символ
 
+
 read_word:
     push rdi                     ; сохранить значение rdi
     push r12                     ; сохранить r12
@@ -163,14 +164,16 @@ read_word:
     je .skip_whitespace
     cmp rax, 0xA                 ; проверка на перевод строки
     je .skip_whitespace
-
     cmp rax, 0                   ; конец ввода
     je .end
 
 .write_loop:                    ; основной цикл записи символов
+    test r13, r13                ; проверяем, осталось ли место в буфере
+    jle .end                     ; если нет, заканчиваем
+
     mov [r12], al                ; записать символ в буфер
     inc r12                      ; увеличить указатель на буфер
-    dec r13                     ; уменьшить счетчик длины буфера
+    dec r13                      ; уменьшить счетчик длины
     call read_char               ; считать следующий символ
     cmp rax, 0                   ; проверить конец ввода
     je .end                      ; перейти к завершению, если конец
@@ -190,6 +193,7 @@ read_word:
     pop r12                      ; восстановить r12
     pop rdi                      ; восстановить rdi
     ret
+
 
 parse_uint:
   push rbx
@@ -244,19 +248,24 @@ parse_int:
 string_copy:
     xor rax, rax                 ; Обнуляем счетчик длины
     xor rcx, rcx                 ; Обнуляем rcx для хранения символа
-    .looper:                     ; [Итерация по строке]
-        mov byte cl, [rdi + rax]  ; Символ в rcx
-        inc rax                   ; Увеличиваем счетчик
-        cmp cl, 0                 ; Если символ != null-terminator
-        jz .done                  ; Если достигнут конец строки, выйти
-        mov byte [rsi + rax - 1], cl ; rcx в буфер
-        jmp .looper               ; Продолжить цикл
+
+.looper:                         ; [Итерация по строке]
+    mov byte cl, [rdi + rax]     ; Загружаем символ из исходной строки
+    cmp cl, 0                    ; Проверяем, достигли ли конца строки
+    jz .done                     ; Если да, выходим
+
+    mov byte [rsi + rax], cl     ; Копируем символ в буфер
+    inc rax                      ; Увеличиваем счетчик
+    jmp .looper                  ; Продолжаем цикл
 
 .done:
+    mov byte [rsi + rax], 0      ; Добавляем нулевой терминатор в конец скопированной строки
+
     cmp rax, rdx                  ; Сравниваем длину строки и буфера
-    jl .return                    ; Если меньше, возвращаем
+    jl .return                    ; Если длина строки меньше буфера, возвращаем
     xor eax, eax                  ; Иначе обнуляем rax
 
 .return:
     ret
+
 
