@@ -242,17 +242,21 @@ parse_int:
 ; Копирует строку в буфер
 ; Возвращает длину строки если она умещается в буфер, иначе 0
 string_copy:
-    xor rax, rax
-    xor eax, eax              ; Обнуляем счетчик длины
-    .looper:                 ; [Итерация по строке]
+    xor rax, rax                 ; Обнуляем счетчик длины
+    xor rcx, rcx                 ; Обнуляем rcx для хранения символа
+    .looper:                     ; [Итерация по строке]
         mov byte cl, [rdi + rax]  ; Символ в rcx
-        mov byte [rsi + rax], cl  ; rcx в буфер
-        inc rax               ; Увеличиваем счетчик
-        cmp cl, 0               ; Если символ != null-terminator
-        jnz .looper              ; То продолжаем
+        inc rax                   ; Увеличиваем счетчик
+        cmp cl, 0                 ; Если символ != null-terminator
+        jz .done                  ; Если достигнут конец строки, выйти
+        mov byte [rsi + rax - 1], cl ; rcx в буфер
+        jmp .looper               ; Продолжить цикл
+
+.done:
     cmp rax, rdx                  ; Сравниваем длину строки и буфера
-    jl .return                    ; Если меньше, то возврат
+    jl .return                    ; Если меньше, возвращаем
     xor eax, eax                  ; Иначе обнуляем rax
-    .return:                      ; [Возврат]
-        ret   
+
+.return:
+    ret
 
