@@ -149,44 +149,46 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-													; rdi - куда записываем, rsi - длинна строки 
-	push r13										; сохраняем регистры r13, r14
+    push r13
     push r14
     xor r14, r14
     mov r10, rsi
     mov r13, rdi
-	sp_loop:									; пропускаем все пробелы в начале
-		call read_char								
-		cmp al, 0x20		
-		jne write_char								; начинаем записывать слово
-		jmp sp_loop
-	read_next:
-		call read_char		
-		cmp al, 0x20 ; space
-		je read_end
-	write_char:
-		cmp al, 0x9
-		je read_end
-		cmp al, 0x0
-		je read_end
-		mov byte [r13 + r14], al
-		inc r14
-		cmp r14, r10
-		je read_out
-		jmp read_next
-	read_end:
-		mov rax, r13
-		mov byte [r13 + r14], 0
-		mov rdx, r14
-		jmp return
-	read_out:
-		xor rax, rax
-		xor rdx, rdx
-	return:
-		pop r14
-		pop r13		
-	ret
+first_loop:
+    call read_char
+    cmp al, 0x20
+    jne write_char
+    jmp first_loop
+cont_read:
+    call read_char
+    cmp r14, r10
+    je read_out
+    cmp al, 0x20 ; space
+    je read_ret
+write_char:
+    cmp al, 0x9 ; tab
+    je read_ret
+    cmp al, 0x0 ; end of input
+    je read_ret
+    mov byte [r13+r14], al
+    inc r14
+    jmp cont_read
+read_ret:
+    mov rax, r13
+    mov byte [r13+r14], 0
+    mov rdx, r14 ; string length
+    pop r14
+    pop r13
+    ret
+read_out:
+    mov rax, 0
+    xor rdx, rdx ; string length = 0
+    pop r14
+    pop r13
+    ret
 
+; rdi -- null-terminated input string pointer
+; out rax -- parsed uint
 
 
 parse_uint:
