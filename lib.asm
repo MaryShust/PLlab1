@@ -149,61 +149,44 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-    push rdi                     ; сохранить значение rdi
-    push r12                     ; сохранить r12
-    push r13                     ; сохранить r13
-    mov r12, rdi                 ; r12 - указатель на буфер
-    mov r13, rsi                 ; r13 - длина буфера
+													; rdi - куда записываем, rsi - длинна строки 
+	push r13										; сохраняем регистры r13, r14
+    push r14
+    xor r14, r14
+    mov r10, rsi
+    mov r13, rdi
+	sp_loop:									; пропускаем все пробелы в начале
+		call read_char								
+		cmp al, 0x20		
+		jne write_char								; начинаем записывать слово
+		jmp sp_loop
+	read_next:
+		call read_char		
+		cmp al, 0x20 ; space
+		je read_end
+	write_char:
+		cmp al, 0x9
+		je read_end
+		cmp al, 0x0
+		je read_end
+		mov byte [r13 + r14], al
+		inc r14
+		cmp r14, r10
+		je read_out
+		jmp read_next
+	read_end:
+		mov rax, r13
+		mov byte [r13 + r14], 0
+		mov rdx, r14
+		jmp return
+	read_out:
+		xor rax, rax
+		xor rdx, rdx
+	return:
+		pop r14
+		pop r13		
+	ret
 
-.skip_whitespace:                ; пропуск пробелов
-    call read_char
-    cmp rax, 0x20                ; проверка на пробел
-    je .skip_whitespace
-    cmp rax, 0x9                 ; проверка на табуляцию
-    je .skip_whitespace
-    cmp rax, 0xA                 ; проверка на перевод строки
-    je .skip_whitespace
-    cmp rax, 0                   ; конец ввода
-    je .end
-
-.write_loop:                    ; основной цикл записи символов
-    test r13, r13                ; проверяем, осталось ли место в буфере
-    jle .end                     ; если нет, заканчиваем
-
-    mov [r12], al                ; записать символ в буфер
-    inc r12                      ; увеличить указатель на буфер
-    dec r13                      ; уменьшить счетчик длины
-    call read_char               ; считать следующий символ
-    cmp rax, 0                   ; проверить конец ввода
-    je .end                      ; перейти к завершению, если конец
-    cmp rax, 0x20                ; проверить пробел
-    je .end                      ; завершить, если пробел
-    cmp rax, 0x9                 ; проверить табуляцию
-    je .end                      ; завершить, если табуляция
-    cmp rax, 0xA                 ; проверить перевод строки
-    je .end                      ; завершить, если перевод строки
-    jmp .write_loop              ; повторить для следующего символа
-
-.end:
-    mov byte [r12], 0            ; добавить нуль-терминатор
-    mov rdx, r12                 ; сохранить адрес конца слова
-    sub rdx, rdi                 ; вычислить длину слова
-
-    ; Если длина слова отрицательная, вернуть ошибку вместо слова
-    cmp rdx, 0
-    jl .error                    ; переход к обработке ошибки, если длина меньше нуля
-
-    pop r13                      ; восстановить r13
-    pop r12                      ; восстановить r12
-    pop rdi                      ; восстановить rdi
-    ret
-
-.error:
-    xor rax, rax                 ; Установить rax в 0 для ошибки
-    pop r13                      ; восстановить r13
-    pop r12                      ; восстановить r12
-    pop rdi                      ; восстановить rdi
-    ret
 
 
 parse_uint:
