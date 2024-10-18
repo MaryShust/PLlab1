@@ -63,32 +63,29 @@ print_newline:
 
 
 print_uint:
- xor  r9, r9                ; couter
- mov  rsi, 10               ; divisor
- mov  rax, rdi
- .loop:
-  xor rdx, rdx
-  inc  r9
-  div  rsi                  ; rdx contains the remainder of div instruction
-  add  rdx, 48              ; convert digit to ASCII
-  push rdx                  ; save symbol on stack
-  test rax, rax
-  jnz  .loop
-  jmp  .result
- .result:
-  dec  r9    
-  mov  rsi, rsp
-  mov  rdx, 1
-  mov  rax, 1
-  mov  rdi, 1
-  syscall                   ; print saved symbol
-  pop  rax
-  test r9, r9
-  jz  .end
-  jmp  .result
- .end:
-  ret
- 
+    push r12
+    push r13
+    mov r12, rsp
+    mov rax, rdi
+    mov r13, 10     ; radix, dont forget to restore r13
+    dec rsp         ; dynamic bufer generation
+    mov byte [rsp], 0
+uint_loop:
+    xor rdx, rdx    ; clear rdx, because div uses rdx:rax
+    div r13
+    add rdx, 0x30   ; because of ascii
+    dec rsp         ; dynamic bufer generation
+    mov [rsp], dl
+    cmp rax, 0         ; when chastnoe is 0, then it`s time to bye-bye from loop
+    je uint_ret
+    jmp uint_loop
+uint_ret:
+    mov rdi, rsp
+    call print_string
+    mov rsp, r12
+    pop r13
+    pop r12
+    ret
 
 
 
