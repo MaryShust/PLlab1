@@ -149,8 +149,6 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-    ret
- 
  push rdi                   ; save original value of rdi
  push r12                   ; save calle-saved r12
  mov  r12, rdi              ; points to empty space in buffer
