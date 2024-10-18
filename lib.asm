@@ -149,52 +149,63 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-  push r13                    ; сохраняем регистры r13, r14
-  push r14
-  xor r14, r14                ; r14 будет индексом для записи в буфер
-  mov r10, rsi                ; длина буфера в r10
-  mov r13, rdi                ; указатель на буфер в r13
-  xor rax, rax                ; обнуляем rax для возвращаемого значения (0 - ничего не прочитано)
+	push r14
+  push r15
+  xor r14, r14
+  mov r15, rsi
+  dec r15
 
-sp_loop:                      ; пропускаем все пробелы в начале
-  call read_char              
-  cmp al, 0x20                ; проверяем на пробел
-  je sp_loop_end              ; если пробел, продолжаем
-  cmp al, 0                    ; проверка на конец строки
-  je sp_loop_end              ; если конец строки, выходим
-  mov byte [r13 + r14], al    ; записываем символ в буфер
-  inc r14                      ; увеличиваем индекс
-  jmp read_next               ; продолжаем чтение
+  .read_first:
+	  push rdi
+	  call read_char
+	  pop rdi
+	  cmp al, ' '
+	  je .read_first
+	  cmp al, 10
+	  je .read_first
+	  cmp al, 13
+	  je .read_first
+	  cmp al, 9
+	  je .read_first
+	  test al, al
+	  jz .read_success
 
-read_next:                   ; читаем следующий символ
-  call read_char              
-  cmp al, 0x20                ; проверяем на пробел
-  je read_end
-  cmp al, 0x9                 ; проверяем на табуляцию
-  je read_end
-  cmp al, 0                    ; проверяем на конец строки
-  je read_end
+  .read_next:
+	  mov byte [rdi + r14], al
+	  inc r14
 
-  mov byte [r13 + r14], al    ; записываем символ в буфер
-  inc r14                      ; увеличиваем индекс
-  cmp r14, r10                 ; проверяем не превышена ли длина буфера
-  jb read_next                 ; если не превышена, продолжаем читать
+	  push rdi
+	  call read_char
+	  pop rdi
+	  cmp al, ' '
+	  je .read_success
+	  cmp al, 10
+	  je .read_success
+	  cmp al, 13
+	  je .read_success
+	  cmp al, 9
+	  je .read_success
+	  test al, al
+	  jz .read_success
+	  cmp r14, r15
+	  je .read_err
+	  jmp .read_next
 
-read_end:
-  mov byte [r13 + r14], 0      ; завершаем строку нулем
-  cmp r14, 0                   ; проверяем, было ли что-то записано
-  jz return_zero               ; если нет, возвращаем 0 (в буфере пусто)
-  
-  mov rax, r13                 ; возвращаем указатель на буфер с введенным словом
-  jmp return
+  .read_success:
+	  mov byte [rdi + r14], 0
+	  mov rax, rdi
+	  mov rdx, r14
+	  pop r15
+	  pop r14
+	  ret
 
-return_zero:
-  xor rax, rax                 ; ничего не прочитано, возвращаем 0
+  .read_err:
+	  xor rax, rax
+		xor rdx, rdx
+	  pop r15
+	  pop r14
+	  ret
 
-return:
-  pop r14                      ; восстанавливаем регистры
-  pop r13
-  ret
 
 
 parse_uint:
