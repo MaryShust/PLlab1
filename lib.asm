@@ -63,30 +63,26 @@ print_newline:
 
 
 print_uint:
-    push r12
-    push r13
-    mov r12, rsp
-    mov rax, rdi
-    mov r13, 10     ; radix, dont forget to restore r13
-    dec rsp         ; dynamic bufer generation
-    mov byte [rsp], 0
-uint_loop:
-    xor rdx, rdx    ; clear rdx, because div uses rdx:rax
-    div r13
-    add rdx, 0x30   ; because of ascii
-    dec rsp         ; dynamic bufer generation
-    mov [rsp], dl
-    cmp rax, 0         ; when chastnoe is 0, then it`s time to bye-bye from loop
-    je uint_ret
-    jmp uint_loop
-uint_ret:
-    mov rdi, rsp
-    call print_string
-    mov rsp, r12
-    pop r13
-    pop r12
+    push rbp 
+    mov  rbp, rsp 
+    mov  rax, rdi 
+    mov  rdi, 10 
+    sub  rsp, 32
+    dec  rbp 
+    mov  byte[rbp], 0 
+      .loop:
+        dec  rbp 
+        xor  rdx, rdx 
+        div  rdi 
+        add  rdx, '0' 
+        mov  byte[rbp], dl 
+        test rax, rax
+        jnz  .loop 
+    mov rdi, rbp 
+    call print_string 
+    add rsp, BUFFER_SIZE 
+    pop rbp 
     ret
-
 
 
 ; Выводит знаковое 8-байтовое число в десятичном формате 
