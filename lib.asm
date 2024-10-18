@@ -88,18 +88,15 @@ print_uint:
 
 ; Выводит знаковое 8-байтовое число в десятичном формате 
 print_int:
- test rdi, rdi
- jge  .print                ; check if number is positive or negative
- neg  rdi                   
- push rdi
- mov  rdi, '-'
- call print_char
- pop  rdi
- .print:
-  sub  rsp, 8               ; align stack
-  call print_uint
-  add  rsp, 8
-  ret  
+	test rdi, rdi 	;установка флагов
+	jns .unsigned 	;если беззнаковое, печатать через print_uint
+	push rdi 		;сохранить число
+	mov rdi, '-' 	;напечатать минус
+    call print_char ;восстановить число
+	pop rdi
+	neg rdi 		;сделать число положительным
+	.unsigned:
+		jmp print_uint
 
 ; Принимает два указателя на нуль-терминированные строки, возвращает 1 если они равны, 0 иначе
 string_equals:
