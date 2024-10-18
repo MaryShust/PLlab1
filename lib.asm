@@ -62,26 +62,31 @@ print_newline:
 
 
 
+
 print_uint:
-    push rbp 
-    mov  rbp, rsp 
-    mov  rax, rdi 
-    mov  rdi, 10 
-    sub  rsp, 32
-    dec  rbp 
-    mov  byte[rbp], 0 
-      .loop:
-        dec  rbp 
-        xor  rdx, rdx 
-        div  rdi 
-        add  rdx, '0' 
-        mov  byte[rbp], dl 
-        test rax, rax
-        jnz  .loop 
-    mov rdi, rbp 
-    call print_string 
-    add rsp, BUFFER_SIZE 
-    pop rbp 
+													; rsp - голова стека, rdi - переданное число
+	push r12
+	push r13
+	mov r12, rsp									; сохраним вершину стека в r12
+	mov r13, 10										; сохраним основание системы счисления для деления
+	mov rax, rdi									; сохраним переданное чило в rax
+	dec rsp
+	mov byte[rsp], 0								; dec+mov - "руками" делаем однобайтовый pop
+	.loop:
+		dec rsp										; сдвигаем указатель
+		xor rdx, rdx								; обнуляем rdx
+		div  r13 									; делим на 10, остаток в rdx
+		add rdx, 0x30								; переводим в ASCII
+		mov  byte[rsp], dl 							; сохраняем в стeк
+		test rax, rax								; установит ZF = 0, если rax = 0
+		jz .print									; если ZF == 0, заканчиваем деление
+		jmp .loop
+	.print:
+	mov rdi, rsp 									; аргумент для print_string
+	call print_string 								; выводим число в stdout
+	mov rsp, r12						
+    pop r13
+    pop r12 										; восстановим регистры
     ret
 
 
