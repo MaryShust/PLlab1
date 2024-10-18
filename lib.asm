@@ -64,29 +64,25 @@ print_newline:
 
 
 print_uint:
-													; rsp - голова стека, rdi - переданное число
-	push r12
-	push r13
-	mov r12, rsp									; сохраним вершину стека в r12
-	mov r13, 10										; сохраним основание системы счисления для деления
-	mov rax, rdi									; сохраним переданное чило в rax
-	dec rsp
-	mov byte[rsp], 0								; dec+mov - "руками" делаем однобайтовый pop
+	push rbp
+	mov rbp, rsp			;в rbp теперь указатель на вершину стека
+	mov rax, rdi			;переместить число в rax
+	mov rdi, 10				;чтобы делить на 10
+	sub  rsp, 32			;выделить место на стеке
+	dec  rbp				;положить туда 0
+	mov  byte[rbp], 0
 	.loop:
-		dec rsp										; сдвигаем указатель
-		xor rdx, rdx								; обнуляем rdx
-		div  r13 									; делим на 10, остаток в rdx
-		add rdx, 0x30								; переводим в ASCII
-		mov  byte[rsp], dl 							; сохраняем в стeк
-		test rax, rax								; установит ZF = 0, если rax = 0
-		jz .print									; если ZF == 0, заканчиваем деление
-		jmp .loop
-	.print:
-	mov rdi, rsp 									; аргумент для print_string
-	call print_string 								; выводим число в stdout
-	mov rsp, r12						
-    pop r13
-    pop r12 										; восстановим регистры
+		dec  rbp			;подвинуть указатель
+	  xor  rdx, rdx
+	  div  rdi				;разделить на 10
+	  add  rdx, '0'			;добавить код нуля, чтобы получить цифру
+	  mov  byte[rbp], dl	;положить на стек
+	  test rax, rax			;закончить цикл, если всё число рассмотрено
+	  jnz  .loop
+	mov rdi, rbp			;печать числа
+	call print_string
+	add rsp, 32			;вернуть стек на место, убрать выделенный буфер
+	pop rbp
     ret
 
 
