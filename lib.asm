@@ -148,6 +148,67 @@ read_char:
         add rsp, 1             ; Восстанавливаем стек
         ret                     ; Возвращаем символ
 
+read_word:
+  push rdi      ; Save buffer address
+  push r12      ; Save callee-saved r12
+  mov r12, rdi
+
+  push r13      ; Save callee-saved r13
+  mov r13, rsi
+
+  ; r12: current buffer address
+  ; r13: current buffee size
+  test r13, rsi
+  jz .word_is_too_big
+
+  .while_spaces:
+    call read_char
+    cmp rax, SPACE_SYM
+    je .while_spaces
+    cmp rax, TAB_SYM
+    je .while_spaces
+    cmp rax, NEWLINE_SYM
+    je .while_spaces
+
+  .read_loop:
+    cmp rax, NULL_SYM     ; Null-terminator => full read
+    je .full_read
+    cmp rax, SPACE_SYM    ; Space => full read
+    je .full_read
+    cmp rax, TAB_SYM      ; Tab => full read
+    je .full_read
+    cmp rax, NEWLINE_SYM  ; Newline => full read
+    je .full_read
+
+    dec r13               ; Buffer size -= 1
+    cmp r13, 0
+    jbe .word_is_too_big  ; Current buffer size <= 0 => word is too big
+
+    mov byte [r12], al    ; Save char to buffer
+    inc r12               ; Current buffer address += 1
+    call read_char
+
+    jmp .read_loop
+
+  .full_read:
+    mov byte [r12], NULL_SYM  ; Add null-terminator to word
+    pop r13
+    pop r12
+
+    mov rdi, [rsp]        ; Read rdi from stack without poping
+    call string_length    ; rax <- word length
+    mov rdx, rax          ; rdx <- rax == word length
+
+    pop rax
+    ret
+
+  .word_is_too_big:
+    pop r13
+    pop r12
+    pop rdi
+    xor rax, rax          ; Error: rax <- 0
+    ret
+
 
 
 
