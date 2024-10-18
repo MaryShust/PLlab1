@@ -149,52 +149,45 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-    push rdi                ; save original value of rdi
-    push r12                ; save callee-saved r12
-    mov  r12, rdi           ; points to empty space in buffer
-    push r13                ; save callee-saved r13
-    mov  r13, rsi           ; counter for buffer length
-    .check:                     ; section for skipping ' ', '\n' and '\t' symbols
-        call read_char          
-        cmp  rax, 0x20          ; check for ' ' symbol
-        jz   .check
-        cmp  rax, 0x9           ; check for '\t' symbol
-        jz   .check
-        cmp  rax, 0xA           ; check for '\n' symbol
-        jz   .check
-        cmp  rax, 0             ; check for end of input
-        jz   .end
-        jmp  .place
-    .loop:                      ; section for reading symbols after ' ', '\n' and '\t'
-        call read_char          
-        cmp  rax, 0             ; check for end of input
-        jz   .end
-        cmp  rax, 0x20          ; check for ' ' symbol
-        jz   .end
-        cmp  rax, 0x9           ; check for '\t' symbol
-        jz   .end
-        cmp  rax, 0xA           ; check for '\n' symbol
-        jz   .end
-    .place:                     ; place symbol in buffer
-        mov  byte [r12], al
-        inc  r12
-        dec  r13
-        test r13, r13
-        jge  .loop
-    
-        mov  rax, 0
-        pop  r13
-        pop  r12
-        pop  rdi
-        ret
-    .end:
-        mov  byte [r12], 0      ; add null terminator
-        mov  rdx, r12           ; store current position in rdx
-        pop  r13
-        pop  r12
-        pop  rax                ; restore original value of rdi into rax
-        sub  rdx, rax           ; calculate length (r12 - rdi)
-        ret
+  push r13                    ; сохраняем регистры r13, r14
+  push r14
+  xor r14, r14                ; r14 будет индексом для записи в буфер
+  mov r10, rsi                ; длина буфера в r10
+  mov r13, rdi                ; указатель на буфер в r13
+
+sp_loop:                      ; пропускаем все пробелы в начале
+  call read_char              
+  cmp al, 0x20                ; проверяем на пробел
+  jne write_char              ; если не пробел, начинаем записывать слово
+  jmp sp_loop
+
+read_next:                   ; читаем следующий символ
+  call read_char              
+  cmp al, 0x20                ; проверяем на пробел
+  je read_end
+  cmp al, 0x9                 ; проверяем на табуляцию
+  je read_end
+  cmp al, 0                    ; проверяем на конец строки
+  je read_end
+
+write_char:                 
+  mov byte [r13 + r14], al    ; записываем символ в буфер
+  inc r14                      ; увеличиваем индекс
+  cmp r14, r10                 ; проверяем не превышена ли длина буфера
+  jb read_next                 ; если не превышена, продолжаем читать
+
+read_end:
+  mov byte [r13 + r14], 0      ; завершаем строку нулем
+  cmp r14, 0                   ; проверяем, было ли что-то записано
+  jnz return                   ; если да, возвращаем адрес
+  ; если ничего не записали, возвращаем указатель на буфер
+  mov rax, r13                 ; возвращаем указатель на буфер
+  jmp return
+
+return:
+  pop r14                      ; восстанавливаем регистры
+  pop r13
+  ret
 
 parse_uint:
   push rbx
