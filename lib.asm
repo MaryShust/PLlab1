@@ -148,52 +148,7 @@ read_char:
         add rsp, 1             ; Восстанавливаем стек
         ret                     ; Возвращаем символ
 
-read_word:
- push rdi                   ; save original value of rdi
- push r12                   ; save calle-saved r12
- mov  r12, rdi              ; points to empty space in buffer
- push r13                   ; save calle-saved r13
- mov  r13, rsi              ; counter for buffer length 
- .check:                    ; section for skipping ' ', '\n' and '\t' symbols
-  call  read_char           
-  cmp  rax, ' '
-  jz  .check
-  cmp  rax, `\t`
-  jz  .check
-  cmp  rax, `\n`
-  jz  .check
- cmp  rax, null_term       ; input end check
-  jz  .end
-  jmp  .place
- .loop:                     ; section for symbols which go after ' ', '\n' and '\t' symbols
-  call read_char            
-  cmp  rax, null_term
-  jz  .end
-  cmp  rax, ' ' 
-  jz  .end
-  cmp  rax, `\t`
-  jz  .end
-  cmp  rax, `\n`
-  jz  .end
- .place:                    ; place symbol in buffer
-  mov  byte[r12], al
-  inc  r12
-  dec  r13
-  test r13, r13
-  jge  .loop
-  mov  rax, 0
-  pop  r13
-  pop  r12
-  pop  rdi
-  ret
- .end:  
-  mov  byte[r12], 0         ; add null terminator
-  mov  rdx, r12             
-  pop  r13
-  pop  r12
-  pop  rax                  ; restore original value of rdi in rax
-  sub  rdx, rax             ; r12 (last buffer index) - rdi (first buffer index) = length
-  ret
+
 
 
 parse_uint:
