@@ -149,44 +149,53 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-													; rdi - куда записываем, rsi - длинна строки 
-	push r13										; сохраняем регистры r13, r14
-    push r14
-    xor r14, r14
-    mov r10, rsi
-    mov r13, rdi
-	sp_loop:									; пропускаем все пробелы в начале
-		call read_char								
-		cmp al, 0x20		
-		jne write_char								; начинаем записывать слово
-		jmp sp_loop
-	read_next:
-		call read_char		
-		cmp al, 0x20 ; space
-		je read_end
-	write_char:
-		cmp al, 0x9
-		je read_end
-		cmp al, 0x0
-		je read_end
-		mov byte [r13 + r14], al
-		inc r14
-		cmp r14, r10
-		je read_out
-		jmp read_next
-	read_end:
-		mov rax, r13
-		mov byte [r13 + r14], 0
-		mov rdx, r14
-		jmp return
-	read_out:
-		xor rax, rax
-		xor rdx, rdx
-	return:
-		pop r14
-		pop r13		
-	ret
-
+    ret
+ 
+ push rdi                   ; save original value of rdi
+ push r12                   ; save calle-saved r12
+ mov  r12, rdi              ; points to empty space in buffer
+ push r13                   ; save calle-saved r13
+ mov  r13, rsi              ; counter for buffer length 
+ .check:                    ; section for skipping ' ', '\n' and '\t' symbols
+  call  read_char           
+  cmp  rax, ' '
+  jz  .check
+  cmp  rax, `\t`
+  jz  .check
+  cmp  rax, `\n`
+  jz  .check
+ cmp  rax, null_term       ; input end check
+  jz  .end
+  jmp  .place
+ .loop:                     ; section for symbols which go after ' ', '\n' and '\t' symbols
+  call read_char            
+  cmp  rax, null_term
+  jz  .end
+  cmp  rax, ' ' 
+  jz  .end
+  cmp  rax, `\t`
+  jz  .end
+  cmp  rax, `\n`
+  jz  .end
+ .place:                    ; place symbol in buffer
+  mov  byte[r12], al
+  inc  r12
+  dec  r13
+  test r13, r13
+  jge  .loop
+  mov  rax, 0
+  pop  r13
+  pop  r12
+  pop  rdi
+  ret
+ .end:  
+  mov  byte[r12], 0         ; add null terminator
+  mov  rdx, r12             
+  pop  r13
+  pop  r12
+  pop  rax                  ; restore original value of rdi in rax
+  sub  rdx, rax             ; r12 (last buffer index) - rdi (first buffer index) = length
+  ret
 
 
 parse_uint:
