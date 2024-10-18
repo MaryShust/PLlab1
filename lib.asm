@@ -149,47 +149,52 @@ read_char:
         ret                     ; Возвращаем символ
 
 read_word:
-    push r13
-    push r14
-    xor r14, r14
-    mov r10, rsi
-    mov r13, rdi
-first_loop:
-    call read_char
-    cmp al, 0x20
-    jne write_char
-    jmp first_loop
-cont_read:
-    call read_char
-    cmp r14, r10
-    je read_out
-    cmp al, 0x20 ; space
-    je read_ret
-write_char:
-    cmp al, 0x9 ; tab
-    je read_ret
-    cmp al, 0x0 ; end of input
-    je read_ret
-    mov byte [r13+r14], al
-    inc r14
-    jmp cont_read
-read_ret:
-    mov rax, r13
-    mov byte [r13+r14], 0
-    mov rdx, r14 ; string length
-    pop r14
-    pop r13
-    ret
-read_out:
-    mov rax, 0
-    xor rdx, rdx ; string length = 0
-    pop r14
-    pop r13
-    ret
-
-; rdi -- null-terminated input string pointer
-; out rax -- parsed uint
-
+    push rdi                ; save original value of rdi
+    push r12                ; save callee-saved r12
+    mov  r12, rdi           ; points to empty space in buffer
+    push r13                ; save callee-saved r13
+    mov  r13, rsi           ; counter for buffer length
+    .check:                     ; section for skipping ' ', '\n' and '\t' symbols
+        call read_char          
+        cmp  rax, 0x20          ; check for ' ' symbol
+        jz   .check
+        cmp  rax, 0x9           ; check for '\t' symbol
+        jz   .check
+        cmp  rax, 0xA           ; check for '\n' symbol
+        jz   .check
+        cmp  rax, 0             ; check for end of input
+        jz   .end
+        jmp  .place
+    .loop:                      ; section for reading symbols after ' ', '\n' and '\t'
+        call read_char          
+        cmp  rax, 0             ; check for end of input
+        jz   .end
+        cmp  rax, 0x20          ; check for ' ' symbol
+        jz   .end
+        cmp  rax, 0x9           ; check for '\t' symbol
+        jz   .end
+        cmp  rax, 0xA           ; check for '\n' symbol
+        jz   .end
+    .place:                     ; place symbol in buffer
+        mov  byte [r12], al
+        inc  r12
+        dec  r13
+        test r13, r13
+        jge  .loop
+    
+        mov  rax, 0
+        pop  r13
+        pop  r12
+        pop  rdi
+        ret
+    .end:
+        mov  byte [r12], 0      ; add null terminator
+        mov  rdx, r12           ; store current position in rdx
+        pop  r13
+        pop  r12
+        pop  rax                ; restore original value of rdi into rax
+        sub  rdx, rax           ; calculate length (r12 - rdi)
+        ret
 
 parse_uint:
   push rbx
