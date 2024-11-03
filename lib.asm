@@ -1,5 +1,6 @@
 section .text
 
+%define SYS_WRITE 1
 ; Принимает код возврата и завершает текущий процесс
 exit:
     mov rax, 60
@@ -34,8 +35,8 @@ print_string:
     pop rsi
     ; Параметры для системного вызова
     mov rdx, rax           ; Длина строки    
-    mov rdi, 1             ; 1 - дескриптор stdout
-    mov rax, 1             ; Системный вызов sys_write (1)
+    mov rdi, SYS_WRITE             ; 1 - дескриптор stdout
+    mov rax, SYS_WRITE             ; Системный вызов sys_write (1)
     syscall                ; Вызов системного вызова
     ret
     .done:
