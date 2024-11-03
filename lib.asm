@@ -4,6 +4,10 @@ section .data
 section .text
 
 %define SYS_WRITE 1
+%define SYS_READ  0
+
+%define STDIN     0
+%define STDOUT    1
 
 %define SYS_1 1
 %define SYS_0 0
@@ -39,7 +43,7 @@ print_string:
     pop rsi
     ; Параметры для системного вызова
     mov rdx, rax           ; Длина строки    
-    mov rdi, SYS_WRITE             ; 1 - дескриптор stdout
+    mov rdi, STDOUT             ; 1 - дескриптор stdout
     mov rax, SYS_WRITE             ; Системный вызов sys_write (1)
     syscall                ; Вызов системного вызова
     ret
@@ -51,7 +55,7 @@ print_char:
     ; Принимаем код символа в rdi
     push rdi
     mov rax, SYS_WRITE                 ; Номер системного вызова write
-    mov rdi, SYS_WRITE                 ; Файл дескриптор 1 (stdout)
+    mov rdi, STDOUT                 ; Файл дескриптор 1 (stdout)
     ; Подготовка к записи символа
     mov rsi, rsp               ; Указываем на стек для хранения символа
     mov rdx, 1                 ; Количество байт для записи (один символ)
@@ -126,7 +130,7 @@ read_char:
     ; Создаем буфер для хранения символа
     sub rsp, SYS_1             ; Выделяем 1 байт на стеке
     xor rax, rax             ; Код системного вызова для read
-    mov rdi, SYS_0             ; Дескриптор файла 0 (stdin)
+    mov rdi, STDIN             ; Дескриптор файла 0 (stdin)
     lea rsi, [rsp]         ; Адрес буфера - адрес на стеке
     mov rdx, SYS_1             ; Читаем 1 байт
     syscall                 ; Вызываем системный вызов
