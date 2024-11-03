@@ -1,3 +1,6 @@
+section .data
+    newline db 10 
+
 section .text
 
 %define SYS_WRITE 1
@@ -58,7 +61,7 @@ print_char:
 
 ; Переводит строку (выводит символ с кодом 0xA)
 print_newline:
-    mov rdi, 10           ; Код символа новой строки (0xA) в rdi
+    mov rdi, newline           ;
     jmp print_char                  ; Возврат из функции     
 
 
