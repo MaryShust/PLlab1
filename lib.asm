@@ -46,8 +46,8 @@ print_string:
 print_char:
     ; Принимаем код символа в rdi
     push rdi
-    mov rax, 1                 ; Номер системного вызова write
-    mov rdi, 1                 ; Файл дескриптор 1 (stdout)
+    mov rax, SYS_WRITE                 ; Номер системного вызова write
+    mov rdi, SYS_WRITE                 ; Файл дескриптор 1 (stdout)
     ; Подготовка к записи символа
     mov rsi, rsp               ; Указываем на стек для хранения символа
     mov rdx, 1                 ; Количество байт для записи (один символ)
@@ -58,8 +58,7 @@ print_char:
 ; Переводит строку (выводит символ с кодом 0xA)
 print_newline:
     mov rdi, 10           ; Код символа новой строки (0xA) в rdi
-    call print_char       ; Вызов функции print_char для вывода новой строки
-    ret                   ; Возврат из функции     
+    jmp print_char                  ; Возврат из функции     
 
 
 
